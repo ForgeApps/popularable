@@ -1,4 +1,4 @@
-module Trendable
+module Popularable
   module Rails
     class Engine < ::Rails::Engine
     end
