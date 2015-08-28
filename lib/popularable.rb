@@ -1,6 +1,7 @@
 require 'rails'
 require 'concerns/popularable'
 require 'popularable/popularable'
+require 'models/popularable_popularity_event'
 require 'popularable/engine'
 require 'popularable/version'
 
