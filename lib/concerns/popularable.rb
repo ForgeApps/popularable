@@ -3,17 +3,17 @@ module Popularable
     extend ActiveSupport::Concern
 
     included do
-      # scope :order_by_popularity, -> { order(  ) }
+      # scope :order_by_recent_popularity, -> { .joins( "LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "')").where( ["popularable_popularity_events.popularity_event_date >= ?", 1.month.ago] ).group( self.to_s.pluralize.underscore + ".id" ).order( "popularity DESC" ) }
 
-      scope :popular_today,      -> { find_by_sql( ["SELECT " + self.to_s.pluralize.underscore + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.to_s.pluralize.underscore + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.to_s.pluralize.underscore + ".id ORDER BY popularity DESC", Time.now.to_date] ) }
+      scope :popular_today,      -> { find_by_sql( ["SELECT " + self.table_name + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.table_name + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.table_name + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.table_name + ".id ORDER BY popularity DESC", Time.now.to_date] ) }
 
-      scope :popular_this_week,  -> { find_by_sql( ["SELECT " + self.to_s.pluralize.underscore + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.to_s.pluralize.underscore + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.to_s.pluralize.underscore + ".id ORDER BY popularity DESC", Time.now.beginning_of_week.to_date] ) }
+      scope :popular_this_week,  -> { find_by_sql( ["SELECT " + self.table_name + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.table_name + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.table_name + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.table_name + ".id ORDER BY popularity DESC", Time.now.beginning_of_week.to_date] ) }
 
-      scope :popular_this_month, -> { find_by_sql( ["SELECT " + self.to_s.pluralize.underscore + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.to_s.pluralize.underscore + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.to_s.pluralize.underscore + ".id ORDER BY popularity DESC", Time.now.beginning_of_month.to_date] ) }
+      scope :popular_this_month, -> { find_by_sql( ["SELECT " + self.table_name + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.table_name + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.table_name + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.table_name + ".id ORDER BY popularity DESC", Time.now.beginning_of_month.to_date] ) }
 
-      scope :popular_this_year,  -> { find_by_sql( ["SELECT " + self.to_s.pluralize.underscore + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.to_s.pluralize.underscore + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.to_s.pluralize.underscore + ".id ORDER BY popularity DESC", Time.now.beginning_of_year.to_date] ) }
+      scope :popular_this_year,  -> { find_by_sql( ["SELECT " + self.table_name + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.table_name + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.table_name + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') WHERE popularable_popularity_events.popularity_event_date >= ? GROUP BY " + self.table_name + ".id ORDER BY popularity DESC", Time.now.beginning_of_year.to_date] ) }
 
-      scope :popular_all_time,   -> { find_by_sql( ["SELECT " + self.to_s.pluralize.underscore + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.to_s.pluralize.underscore + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.to_s.pluralize.underscore + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') GROUP BY " + self.to_s.pluralize.underscore + ".id ORDER BY popularity DESC"] ) }
+      scope :popular_all_time,   -> { find_by_sql( ["SELECT " + self.table_name + ".*, 0 + SUM(popularable_popularity_events.popularity) AS popularity FROM " + self.table_name + " LEFT OUTER JOIN popularable_popularity_events ON (" + self.table_name + ".id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '" + self.to_s + "') GROUP BY " + self.table_name + ".id ORDER BY popularity DESC"] ) }
 
       has_many :popularable_popularity_events, as: :popularable
 
@@ -23,18 +23,10 @@ module Popularable
 
     end
 
-    def bump_popularity!( popularity_add_value = 1 )
-      popularable_popularity_event = self.popularable_popularity_events.find_or_create_by( popularity_event_date: Time.now.to_date )
+    def bump_popularity!( popularity_add_value = 1, popularity_event_time = Time.now )
+      popularable_popularity_event = self.popularable_popularity_events.find_or_create_by( popularity_event_date: popularity_event_time.to_date )
 
       popularable_popularity_event.update_attributes( popularity: popularable_popularity_event.popularity.to_i + popularity_add_value )
     end
-
-    # def boost_trending_power!( add_value = 1000 )
-    #   self.update_attributes( trending_power: trending_power + add_value )
-    # end
-    #
-    # def fade_out_trending_power!( multiplier = 0.9 )
-    #   self.update_attributes( trending_power: trending_power * multiplier )
-    # end
   end
 end

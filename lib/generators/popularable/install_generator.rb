@@ -30,7 +30,7 @@ class #{migration_name} < ActiveRecord::Migration
     end
 
     add_index :popularable_popularity_events, [:popularable_type, :popularable_id], name: "index_popularable_popularity_events_type_id"
-    add_index :popularable_popularity_events, [:popularable_type, :popularable_id, :popularity], name: "index_popularable_popularity_events_type_id_popularity"
+    add_index :popularable_popularity_events, [:popularity_event_date, :popularable_type, :popularable_id, :popularity], name: "index_popularable_popularity_events_type_id_popularity"
     add_index :popularable_popularity_events, :popularity
   end
 end
