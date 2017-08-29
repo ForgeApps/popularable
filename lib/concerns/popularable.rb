@@ -34,6 +34,31 @@ module Popularable
       def self.has_popularable_concern?
         true
       end
+      
+      # Count methods
+      def popular_count_today
+        popular_count_since(Time.now.beginning_of_day)
+      end
+
+      def popular_count_this_week
+        popular_count_since(Time.now.beginning_of_week)
+      end
+
+      def popular_count_this_month
+        popular_count_since(Time.now.beginning_of_month)
+      end
+
+      def popular_count_this_year
+        popular_count_since(Time.now.beginning_of_year)
+      end
+
+      def popular_count_all_time
+        popular_count_since(Time.now - 100.years)
+      end
+
+      def popular_count_since(since = Time.now) 
+        popularable_popularity_events.where( "popularable_popularity_events.popularity_event_date >= ?", since.to_date ).sum( :popularity )
+      end      
 
     end
 
