@@ -23,11 +23,11 @@ module Popularable
 
       scope :popular_all_time,   -> { 
         # This uses an inner join and ditches the unnecessary where clause for performance.
-        select( "#{self.table_name}.*, 0 + SUM(popularable_popularity_events.popularity) AS popularity").joins( "INNER JOIN popularable_popularity_events ON (#{self.table_name}.id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '#{self.to_s}')").group( "#{self.table_name}.id" ).order( "popularity DESC" )
+        select( "#{self.table_name}.*, 0 + SUM(popularable_popularity_events.popularity) AS popularity").joins( "INNER JOIN popularable_popularity_events ON (#{self.table_name}.id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '#{self.name}')").group( "#{self.table_name}.id" ).order( "popularity DESC" )
       }
       
       scope :popular_since, -> (since){
-        select( "#{self.table_name}.*, 0 + SUM(popularable_popularity_events.popularity) AS popularity").joins( "LEFT OUTER JOIN popularable_popularity_events ON (#{self.table_name}.id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '#{self.to_s}')").where( "popularable_popularity_events.popularity_event_date >= ?", since.to_date ).group( "#{self.table_name}.id" ).order( "popularity DESC" )
+        select( "#{self.table_name}.*, 0 + SUM(popularable_popularity_events.popularity) AS popularity").joins( "LEFT OUTER JOIN popularable_popularity_events ON (#{self.table_name}.id = popularable_popularity_events.popularable_id AND popularable_popularity_events.popularable_type = '#{self.name}')").where( "popularable_popularity_events.popularity_event_date >= ?", since.to_date ).group( "#{self.table_name}.id" ).order( "popularity DESC" )
       }
 
       has_many :popularable_popularity_events, as: :popularable
